@@ -1,0 +1,221 @@
+import React, { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
+
+const translations = {
+  ar: {
+    title: "Glaze Cafe",
+    subtitle: "اطلب بكل سهولة",
+    product: "المنتج",
+    quantity: "الكمية",
+    selectPlaceholder: "اختر منتجك",
+    add: "➕ أضف للطلب",
+    order: "طلبك",
+    noItems: "لا يوجد طلبات بعد.",
+    confirm: "✅ تأكيد الطلب",
+    thanks: "🎉 شكراً لطلبك",
+    orderNumber: "طلبك رقم",
+    summary: "ملخص الطلب:",
+    processing: "📍 سيتم تجهيز طلبك خلال دقائق قليلة",
+    returning: "سيتم الرجوع تلقائياً خلال",
+    newOrder: "🔄 طلب جديد",
+    items: {
+      coffee: "☕ قهوة أمريكية",
+      cappuccino: "☕ كابتشينو",
+      croissant: "🥐 كرواسون جبن",
+      donut: "🍩 دونات سكر",
+    },
+  },
+  en: {
+    title: "Glaze Cafe",
+    subtitle: "Order with ease",
+    product: "Product",
+    quantity: "Quantity",
+    selectPlaceholder: "Select your item",
+    add: "➕ Add to Order",
+    order: "Your Order",
+    noItems: "No items in the order yet.",
+    confirm: "✅ Submit Order",
+    thanks: "🎉 Thank You!",
+    orderNumber: "Your order number is",
+    summary: "Order Summary:",
+    processing: "📍 Your order will be ready in a few minutes.",
+    returning: "Returning automatically in",
+    newOrder: "🔄 New Order",
+    items: {
+      coffee: "☕ Americano",
+      cappuccino: "☕ Cappuccino",
+      croissant: "🥐 Cheese Croissant",
+      donut: "🍩 Sugar Donut",
+    },
+  },
+};
+
+const GlazeCafeOrder = () => {
+  const [language, setLanguage] = useState("ar");
+  const t = translations[language];
+
+  const [order, setOrder] = useState([]);
+  const [item, setItem] = useState("");
+  const [quantity, setQuantity] = useState(1);
+  const [view, setView] = useState("form");
+  const [orderNumber, setOrderNumber] = useState(null);
+  const [countdown, setCountdown] = useState(10);
+
+  const handleAddItem = () => {
+    if (item && quantity > 0) {
+      setOrder([...order, { item, quantity }]);
+      setItem("");
+      setQuantity(1);
+    }
+  };
+
+  const handleSubmitOrder = () => {
+    const randomOrderNumber = Math.floor(1000 + Math.random() * 9000);
+    setOrderNumber(randomOrderNumber);
+    setView("thanks");
+  };
+
+  const handleNewOrder = () => {
+    setOrder([]);
+    setView("form");
+    setOrderNumber(null);
+    setCountdown(10);
+  };
+
+  useEffect(() => {
+    if (view === "thanks" && countdown > 0) {
+      const timer = setTimeout(() => {
+        setCountdown(countdown - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else if (view === "thanks" && countdown === 0) {
+      handleNewOrder();
+    }
+  }, [countdown, view]);
+
+  if (view === "thanks") {
+    return (
+      <div className="min-h-screen bg-green-50 flex flex-col items-center justify-center p-6">
+        <div className="max-w-md w-full bg-white shadow-lg rounded-3xl p-8 text-center space-y-6">
+          <div className="flex justify-between">
+            <h1 className="text-4xl font-bold text-green-700">{t.thanks}</h1>
+            <Button variant="outline" onClick={() => setLanguage(language === "ar" ? "en" : "ar")}>
+              {language === "ar" ? "English" : "العربية"}
+            </Button>
+          </div>
+          <p className="text-lg text-gray-700">
+            {t.orderNumber} <strong>#{orderNumber}</strong>
+          </p>
+
+          <div className="text-right space-y-2">
+            <h2 className="text-xl font-semibold text-gray-800">{t.summary}</h2>
+            {order.map((entry, idx) => (
+              <div key={idx} className="flex justify-between text-gray-700">
+                <span>{translations[language].items[entry.item]}</span>
+                <span>{t.quantity}: {entry.quantity}</span>
+              </div>
+            ))}
+          </div>
+
+          <p className="text-gray-600 mt-4">{t.processing}</p>
+          <p className="text-sm text-gray-500">
+            {t.returning} {countdown}...
+          </p>
+
+          <Button onClick={handleNewOrder} className="w-full bg-amber-600 hover:bg-amber-700 text-white text-lg rounded-2xl h-12">
+            {t.newOrder}
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-amber-50 p-6 flex items-center justify-center">
+      <div className="w-full max-w-md space-y-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-4xl font-bold text-amber-800">{t.title}</h1>
+          <Button variant="outline" onClick={() => setLanguage(language === "ar" ? "en" : "ar")}>
+            {language === "ar" ? "English" : "العربية"}
+          </Button>
+        </div>
+        <p className="text-lg text-gray-600">{t.subtitle}</p>
+
+        <Card className="rounded-3xl shadow-lg border-none bg-white">
+          <CardContent className="space-y-6 pt-6">
+            <div>
+              <Label className="text-xl text-amber-700 font-semibold">{t.product}</Label>
+              <Select onValueChange={setItem} value={item}>
+                <SelectTrigger className="mt-2 h-12 text-lg">
+                  <SelectValue placeholder={t.selectPlaceholder} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="coffee">{t.items.coffee}</SelectItem>
+                  <SelectItem value="cappuccino">{t.items.cappuccino}</SelectItem>
+                  <SelectItem value="croissant">{t.items.croissant}</SelectItem>
+                  <SelectItem value="donut">{t.items.donut}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label className="text-xl text-amber-700 font-semibold">{t.quantity}</Label>
+              <Input
+                type="number"
+                min={1}
+                className="mt-2 text-lg h-12"
+                value={quantity}
+                onChange={(e) => setQuantity(Number(e.target.value))}
+              />
+            </div>
+
+            <Button
+              onClick={handleAddItem}
+              className="w-full h-14 bg-amber-600 hover:bg-amber-700 text-white text-xl rounded-2xl"
+            >
+              {t.add}
+            </Button>
+          </CardContent>
+        </Card>
+
+        <div className="space-y-4">
+          <h2 className="text-2xl text-center font-bold text-amber-800">{t.order}</h2>
+          {order.length === 0 ? (
+            <p className="text-center text-gray-500">{t.noItems}</p>
+          ) : (
+            order.map((entry, index) => (
+              <div
+                key={index}
+                className="flex justify-between items-center bg-white rounded-2xl p-4 shadow"
+              >
+                <span>{t.items[entry.item]}</span>
+                <span>{t.quantity}: {entry.quantity}</span>
+              </div>
+            ))
+          )}
+
+          {order.length > 0 && (
+            <Button
+              onClick={handleSubmitOrder}
+              className="w-full h-14 bg-green-600 hover:bg-green-700 text-white text-xl rounded-2xl"
+            >
+              {t.confirm}
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default GlazeCafeOrder;
